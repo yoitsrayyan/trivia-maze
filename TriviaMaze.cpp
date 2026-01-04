@@ -6,7 +6,7 @@ using namespace std;
 
 
 void showMenu();
-void playRoom(string RoomQuestions[], char correctAnswers[], int &PlayerSouls, int &PlayerMark, char AnswersWhiteList[]);
+bool playRoom(string RoomQuestions[], char correctAnswers[], int &PlayerSouls, int &PlayerMark, char AnswersWhiteList[]);
 void quizroTalk(int messageID);
 void loadRoomData(int RoomNum, string RoomQuestions[], char correctAnswers[]);
 void showCredit();
@@ -28,12 +28,18 @@ int main() {
     cout << " >> ";
     cin >> PlayerOrder;
 
-    switch (PlayerOrder) {
-        case(1): IsMenuOn = false; MasterGameLoop = true; break; //Starts the game
-        case(2): showCredit(); cout << "PRESS ENTER TO RETURN TO THE MAIN MENU >>"; cin.ignore(); cin.get(); break; //this one shows the credit menu, Using cin.ignore and cin.get to make the menu stays till the user press enter!
-        case(3): return 0; //leaves the game
-        default: cout << "                                                        WRONG INPUT!                                                                 " << endl;
-    }
+    if (cin.fail()) { //We use this code to make sure the game doesn't enter a loop Error
+        cin.clear();
+        cin.ignore(1000, '\n');
+        cout << " Please enter a number not a character\n";
+        } else {
+            switch (PlayerOrder) {
+                case(1): IsMenuOn = false; MasterGameLoop = true; break; //Starts the game
+                case(2): showCredit(); cout << "PRESS ENTER TO RETURN TO THE MAIN MENU >>"; cin.ignore(); cin.get(); break; //this one shows the credit menu, Using cin.ignore and cin.get to make the menu stays till the user press enter!
+                case(3): return 0; //leaves the game
+                default: cout << "                                                        WRONG INPUT!                                                                 " << endl;
+            }
+        }
 
     }
 
@@ -46,12 +52,22 @@ int main() {
     cout << PlayerName << " (1-yes / 2-No) >>";
     cin >> PlayerResponse;
 
-    switch (PlayerResponse) {
-        case(1): cout << "[Quizro]: Okay, welcome " << PlayerName; quizroTalk(3);
-        PlayerNamecheck = false; break;
-        case(2): PlayerNamecheck = true; break;
-        default: PlayerNamecheck = true; break;
-    }
+    if (cin.fail()) {  //the same as up, So the game doesn't enter that bad loop
+
+        cin.clear();
+        cin.ignore(1000, '\n');
+        cout << " Please enter a number not a character\n";
+        PlayerNamecheck = true;
+
+        } else {
+
+            switch (PlayerResponse) {
+                case(1): cout << "[Quizro]: Okay, welcome " << PlayerName; quizroTalk(3);
+                PlayerNamecheck = false; break;
+                case(2): PlayerNamecheck = true; break;
+                default:  cout << "                                                        WRONG INPUT!                                                                 " << endl; PlayerNamecheck = true; break;
+            }
+        }
 
     } while (PlayerNamecheck == true);
 
@@ -63,10 +79,12 @@ int main() {
         PlayerMark = 0;
 
         for (int room = 1; room <= 4; room++) {
-            if (PlayerSouls <= 0) break;
-
             loadRoomData(room, RoomQuestions, correctAnswers);
-            playRoom(RoomQuestions, correctAnswers, PlayerSouls, PlayerMark, AnswersWhiteList);
+
+            if (!playRoom(RoomQuestions, correctAnswers, PlayerSouls, PlayerMark, AnswersWhiteList)) {
+                 break;
+            }
+
 
             if (PlayerSouls > 0 && room < 4) {
                 cout << "\nMoving to the next room " << PlayerName << "... Prepare yourself!" << endl;
@@ -74,23 +92,40 @@ int main() {
             
         }
 
-        if (PlayerSouls > 0) { //end game
-        cout << "\nCONGRATULATIONS! " << PlayerName << " You conquered the maze! Final Score: " << PlayerMark << "/20" << endl;
-     } else {
-        cout << "\nGAME OVER! The maze claimed your soul. Score: " << PlayerMark << "/20" << endl;
-     }
+        if (PlayerSouls > 0 && PlayerMark > 10) { //end game, win with mark bigger than 10 
+
+         cout << "\nCONGRATULATIONS! " << PlayerName << " You conquered the maze and got my prize! Final Score: " << PlayerMark << "/20" << endl;
+
+         } else if (PlayerSouls > 0 && PlayerMark <= 10) { //end game, win with a mark lower than 10
+
+         cout << "\nCONGRATULATIONS! " << PlayerName << " You conquered the maze!...But your mark sucks so there is no prize for you. Final Score: " << PlayerMark << "/20" << endl;
+             
+         } else {
+            cout << "\nGAME OVER! The maze claimed your soul. Score: " << PlayerMark << "/20" << endl;
+         }
        
         do {
         quizroTalk(8);
         PlayAgainOption = 0;
         cin >> PlayAgainOption;
 
-        switch (PlayAgainOption) {
-        case(1): MasterGameLoop = true; LeaveCheck = false;  break;
-        case(2): MasterGameLoop = false; LeaveCheck = false; showCredit();
-        cout << "\nThanks for playing Trivia Maze " << PlayerName << "! See you next time. (ᵔᵕᵔ)" << endl; break;
-        default: LeaveCheck = true; cout << "                                                        WRONG INPUT!                                                                 " << endl; break;
-      } 
+        if (cin.fail()) {  //the same as the other two, So the game doesn't enter that bad loop
+
+        cin.clear();
+        cin.ignore(1000, '\n');
+        cout << " Please enter a number not a character\n";
+        LeaveCheck = true;
+
+     } else {
+
+         switch (PlayAgainOption) {
+                case(1): MasterGameLoop = true; LeaveCheck = false;  break;
+                case(2): MasterGameLoop = false; LeaveCheck = false; showCredit();
+                cout << "\nThanks for playing Trivia Maze " << PlayerName << "! See you next time. (ᵔᵕᵔ)" << endl; break;
+                default: LeaveCheck = true; cout << "                                                        WRONG INPUT!                                                                 " << endl; break;
+            } 
+
+        }
 
      }while (LeaveCheck == true);
 
@@ -102,26 +137,26 @@ int main() {
 
 //The main menu:
 void showMenu() {
-    cout << "===================================================================================================================================\n" << endl;
-    cout << "   ░▒▓████████▓▒░▒▓███████▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓██████▓▒░░▒▓██████████████▓▒░ ░▒▓██████▓▒░░▒▓████████▓▒░▒▓████████▓▒░    " << endl;
-    cout << "      ░▒▓█▓▒░   ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░      ░▒▓█▓▒░▒▓█▓▒░           " << endl;
-    cout << "      ░▒▓█▓▒░   ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░    ░▒▓██▓▒░░▒▓█▓▒░           " << endl;
-    cout << "      ░▒▓█▓▒░   ░▒▓███████▓▒░░▒▓█▓▒░░▒▓█▓▒▒▓█▓▒░░▒▓█▓▒░▒▓████████▓▒░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░▒▓████████▓▒░  ░▒▓██▓▒░  ░▒▓██████▓▒░      " << endl;
-    cout << "      ░▒▓█▓▒░   ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░ ░▒▓█▓▓█▓▒░ ░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░░▒▓██▓▒░    ░▒▓█▓▒░           " << endl;
-    cout << "      ░▒▓█▓▒░   ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░ ░▒▓█▓▓█▓▒░ ░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░      ░▒▓█▓▒░           " << endl;
-    cout << "      ░▒▓█▓▒░   ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░  ░▒▓██▓▒░  ░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓████████▓▒░▒▓████████▓▒░    " << endl;
-    cout << "\n===================================================================================================================================" << endl;
-    cout << "                                               ###############################                                                       " << endl;
-    cout << "                                               #   welcome to trivia maze!   #                                                       " << endl;
-    cout << "                                               # Type '1' to start the game! #                                                       " << endl;
-    cout << "                                               #   Type '2' to show credit   #                                                       " << endl;
-    cout << "                                               #  Type '3' to Exit the game  #                                                       " << endl;
-    cout << "                                               ###############################                                                       " << endl;
+    cout << "===========================================================================================================\n" << endl;
+    cout << "    mmmmmmmm               ##                  ##               mmm  mmm                               " << endl;
+    cout << "    \"\"\"##\"\"\"               \"\"                  \"\"               ###  ###                               " << endl;
+    cout << "       ##      ##m####   ####     ##m  m##   ####      m#####m  ########   m#####m  ########   m####m  " << endl;
+    cout << "       ##      ##\"         ##      ##  ##      ##      \" mmm##  ## ## ##   \" mmm##      m#\"   ##mmmm## " << endl;
+    cout << "       ##      ##          ##      \"#mm#\"      ##     m##\"\"\"##  ## \"\" ##  m##\"\"\"##    m#\"     ##\"\"\"\"\"\" " << endl;
+    cout << "       ##      ##       mmm##mmm    ####    mmm##mmm  ##mmm###  ##    ##  ##mmm###  m##mmmmm  \"##mmmm# " << endl;
+    cout << "       \"\"      \"\"       \"\"\"\"\"\"\"\"     \"\"     \"\"\"\"\"\"\"\"   \"\"\"\" \"\"  \"\"    \"\"   \"\"\"\" \"\"  \"\"\"\"\"\"\"\"    \"\"\"\"\"  " << endl;
+    cout << "\n===========================================================================================================" << endl;
+    cout << "                                     ###############################                                                       " << endl;
+    cout << "                                     #   welcome to trivia maze!   #                                                       " << endl;
+    cout << "                                     # Type '1' to start the game! #                                                       " << endl;
+    cout << "                                     #   Type '2' to show credit   #                                                       " << endl;
+    cout << "                                     #  Type '3' to Exit the game  #                                                       " << endl;
+    cout << "                                     ###############################                                                       " << endl;
 }
 
 
 //The rooms system
-void playRoom(string RoomQuestions[], char correctAnswers[], int &PlayerSouls, int &PlayerMark, char AnswersWhiteList[]) {
+bool playRoom(string RoomQuestions[], char correctAnswers[], int &PlayerSouls, int &PlayerMark, char AnswersWhiteList[]) {
     int AnswersCorrectInRoom = 0;
 
     for (int i = 0; i<5; i++) {
@@ -160,7 +195,7 @@ void playRoom(string RoomQuestions[], char correctAnswers[], int &PlayerSouls, i
             PlayerSouls--;
             cout << "Remaining Souls: " << PlayerSouls << endl;
         }
-        if (PlayerSouls <= 0) return;
+        if (PlayerSouls <= 0) return false;
     }
 
     if (AnswersCorrectInRoom == 5) {
@@ -168,6 +203,7 @@ void playRoom(string RoomQuestions[], char correctAnswers[], int &PlayerSouls, i
         PlayerSouls++;
         cout << "Current Souls: " << PlayerSouls << endl;
     }
+    return true;
 }
 
 
@@ -177,7 +213,7 @@ void quizroTalk(int messageID) {
     switch(messageID) {
         case(1): cout << "[Quizro]: Greetings, traveler! I am Quizro, the guardian of this maze. Before we begin, what is your name? "; break;
         case(2): cout << "[Quizro]: Is this the right name, "; break;
-        case(3): cout << " To escape this maze and get my price, you must pass through 4 rooms. Answer wisely, for your souls are limited! \n Press Enter when you're ready!" << endl; break;
+        case(3): cout << " To escape this maze and get my prize, you must pass through 4 rooms. Answer wisely, for your souls are limited! \n Press Enter when you're ready!" << endl; break;
         case (4): cout << "\n[Quizro]: WRONG INPUT! Please stick to A, B, C, or D!\n"; break;
         case (5): cout << "\n[Quizro]: Spot on! Your wisdom is impressive!"; break;
         case (6): cout << "\n[Quizro]: Alas! That is incorrect. You have lost a soul... Be careful!"; break;
@@ -264,6 +300,7 @@ void loadRoomData(int RoomNum, string RoomQuestions[], char correctAnswers[]) {
 
         
     }
+    
 }
 
 
@@ -284,8 +321,10 @@ void showCredit() {
 }
 
 /* made by :
+
   Rayyan Mohammad Farouq Saleh         (202510096)
   Mohammad Mahmoud Yaseen Shhabat      (202510239)            
   Hisham Mahmoud Muhammad Al-Nassour   (202510419)    
-  Mohammad Tariq Mohammed Abu-Naim     (202510201)          
+  Mohammad Tariq Mohammed Abu-Naim     (202510201)    
+
 */
